@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wellness Hub San Carlos</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WellnessHub">
+    <meta name="theme-color" content="#059669">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05); }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .active-tab { color: #059669; border-bottom: 3px solid #059669; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen pb-24">
+
+    <header class="sticky top-0 z-50 glass px-6 py-5 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-emerald-800">Wellness Hub</h1>
+            <p class="text-[10px] uppercase tracking-widest text-emerald-600 font-bold">San Carlos Wellness</p>
+        </div>
+        <div class="bg-emerald-100 p-2 rounded-2xl">
+            <i data-lucide="leaf" class="text-emerald-700 w-6 h-6"></i>
+        </div>
+    </header>
+
+    <main class="p-5">
+        <div class="flex gap-4 mb-8 overflow-x-auto hide-scroll py-2">
+            <button onclick="filterItems('todos')" class="cat-btn flex-none px-6 py-3 rounded-2xl bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-200 transition-all active:scale-95">Todos</button>
+            <button onclick="filterItems('servicios')" class="cat-btn flex-none px-6 py-3 rounded-2xl bg-white text-slate-500 font-bold border border-slate-100 transition-all active:scale-95">Servicios</button>
+            <button onclick="filterItems('productos')" class="cat-btn flex-none px-6 py-3 rounded-2xl bg-white text-slate-500 font-bold border border-slate-100 transition-all active:scale-95">Productos</button>
+        </div>
+
+        <div class="relative mb-8">
+            <i data-lucide="search" class="absolute left-4 top-4 text-slate-400 w-5 h-5"></i>
+            <input type="text" id="searchInput" placeholder="¿Qué bienestar buscas hoy?" 
+                class="w-full pl-12 pr-4 py-4 bg-white border-none rounded-2xl card-shadow focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+
+        <div id="itemsGrid" class="grid grid-cols-1 gap-6">
+            </div>
+    </main>
+
+    <nav class="fixed bottom-6 left-6 right-6 h-20 glass rounded-3xl shadow-2xl flex justify-around items-center px-4 border border-white/50">
+        <button class="flex flex-col items-center text-emerald-600"><i data-lucide="home"></i><span class="text-[10px] font-bold mt-1">Explorar</span></button>
+        <button class="flex flex-col items-center text-slate-400"><i data-lucide="map"></i><span class="text-[10px] font-bold mt-1">Mapa</span></button>
+        <button class="flex flex-col items-center text-slate-400"><i data-lucide="heart"></i><span class="text-[10px] font-bold mt-1">Favoritos</span></button>
+    </nav>
+
+    <script>
+        // Datos (Simulando base de datos local - Doc #4)
+        const items = [
+            { id: 1, cat: 'servicios', title: 'Masaje Tejido Profundo', provider: 'Zentro Wellness', price: '$950', link: 'https://wa.me/521234567890', img: 'https://images.unsplash.com/photo-1544161515-4af6b1d8e159?auto=format&fit=crop&w=600' },
+            { id: 2, cat: 'productos', title: 'Kit Aceites Orgánicos', provider: 'Esencias del Mar', price: '$450', link: 'https://tusitio.com', img: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=600' },
+            { id: 3, cat: 'servicios', title: 'Sesión de Sound Healing', provider: 'San Carlos Yoga', price: '$300', link: 'https://wa.me/521234567890', img: 'https://images.unsplash.com/photo-1599447421416-3414500d18a5?auto=format&fit=crop&w=600' },
+            { id: 4, cat: 'productos', title: 'Té Matcha Ceremonial', provider: 'Wellness Shop', price: '$580', link: 'https://tusitio.com', img: 'https://images.unsplash.com/photo-1582793988951-9aed5509eb97?auto=format&fit=crop&w=600' }
+        ];
+
+        function render(data) {
+            const grid = document.getElementById('itemsGrid');
+            grid.innerHTML = data.map(item => `
+                <div class="bg-white rounded-[2.5rem] overflow-hidden card-shadow border border-slate-50 transition-transform active:scale-[0.97]">
+                    <div class="relative h-56">
+                        <img src="${item.img}" class="w-full h-full object-cover" loading="lazy">
+                        <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-4 py-1 rounded-full text-xs font-black text-emerald-700 shadow-sm">
+                            ${item.price}
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${item.cat}</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-1">${item.title}</h3>
+                        <p class="text-slate-500 text-sm mb-6 flex items-center gap-1">
+                            <i data-lucide="shopping-bag" class="w-4 h-4"></i> ${item.provider}
+                        </p>
+                        <a href="${item.link}" target="_blank" class="flex justify-between items-center w-full bg-slate-900 text-white p-4 rounded-2xl font-bold hover:bg-emerald-600 transition-all">
+                            <span>Reservar / Comprar</span>
+                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function filterItems(cat) {
+            // Estilo de botones
+            const btns = document.querySelectorAll('.cat-btn');
+            btns.forEach(b => {
+                b.className = "cat-btn flex-none px-6 py-3 rounded-2xl bg-white text-slate-500 font-bold border border-slate-100 transition-all";
+            });
+            event.target.className = "cat-btn flex-none px-6 py-3 rounded-2xl bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-200 transition-all";
+
+            const filtered = cat === 'todos' ? items : items.filter(i => i.cat === cat);
+            render(filtered);
+        }
+
+        // Búsqueda en tiempo real
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const t = e.target.value.toLowerCase();
+            render(items.filter(i => i.title.toLowerCase().includes(t) || i.provider.toLowerCase().includes(t)));
+        });
+
+        // --- HACK PWA: MANIFIESTO DINÁMICO ---
+        const manifest = {
+            "name": "Wellness Hub San Carlos",
+            "short_name": "WellnessHub",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#f8fafc",
+            "theme_color": "#059669",
+            "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/2864/2864339.png", "sizes": "512x512", "type": "image/png" }]
+        };
+        const stringManifest = JSON.stringify(manifest);
+        const blob = new Blob([stringManifest], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(blob);
+        document.querySelector('head').insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestURL}">`);
+
+        // --- SERVICE WORKER INLINE ---
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('fetch', e => {
+                    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+                });
+            `;
+            const swBlob = new Blob([swCode], {type: 'text/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(swBlob));
+        }
+
+        window.onload = () => render(items);
+    </script>
+</body>
+</html>
