@@ -27,13 +27,7 @@
     <header class="sticky top-0 z-50 glass px-6 py-5 flex justify-between items-center border-b border-slate-100">
         <div>
             <h1 class="text-2xl font-black tracking-tight text-emerald-800">Wellness Hub</h1>
-            <div class="flex items-center gap-1">
-                <span class="relative flex h-2 w-2">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">San Carlos Live</p>
-            </div>
+            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest italic">San Carlos, Sonora</p>
         </div>
         <button onclick="loadCloudData()" class="p-2 bg-emerald-50 rounded-xl text-emerald-600 active:rotate-180 transition-all duration-500">
             <i data-lucide="refresh-cw" class="w-5 h-5"></i>
@@ -50,66 +44,69 @@
         <div id="itemsGrid" class="grid grid-cols-1 gap-6">
             <div class="col-span-full py-20 text-center">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mb-4"></div>
-                <p class="text-slate-400 font-medium">Buscando bienestar en San Carlos...</p>
+                <p class="text-slate-400 font-medium">Sincronizando con San Carlos...</p>
             </div>
         </div>
     </main>
 
     <nav class="fixed bottom-6 left-6 right-6 h-20 glass rounded-3xl shadow-2xl flex justify-around items-center px-4 border border-white/50">
         <button class="flex flex-col items-center text-emerald-600"><i data-lucide="sparkles"></i><span class="text-[10px] font-bold mt-1">Explorar</span></button>
-        <button class="flex flex-col items-center text-slate-400"><i data-lucide="heart"></i><span class="text-[10px] font-bold mt-1">Favoritos</span></button>
-        <button class="flex flex-col items-center text-slate-400"><i data-lucide="info"></i><span class="text-[10px] font-bold mt-1">Ayuda</span></button>
+        <button class="flex flex-col items-center text-slate-400"><i data-lucide="map-pin"></i><span class="text-[10px] font-bold mt-1">Mapa</span></button>
+        <button class="flex flex-col items-center text-slate-400"><i data-lucide="user"></i><span class="text-[10px] font-bold mt-1">Perfil</span></button>
     </nav>
 
     <script>
-        // CONFIGURACIÓN CLOUD (Doc #8)
         const CLOUD_URL = "https://script.google.com/macros/s/AKfycbxw9MinZFHWrLN1tXLJyPB4JV-1xcnI2cirNW50dK7jR0VMxSy_AEPuSZ-k8dAFxUmd/exec";
         let localData = [];
 
         async function loadCloudData() {
             try {
                 const response = await fetch(CLOUD_URL);
-                const data = await response.json();
-                localData = data;
-                render(data);
+                const rawData = await response.json();
+                
+                // NORMALIZACIÓN: Forzamos a que las llaves sean minúsculas (Solución al error)
+                localData = rawData.map(item => {
+                    let newItem = {};
+                    for (let key in item) {
+                        newItem[key.toLowerCase().trim()] = item[key];
+                    }
+                    return newItem;
+                });
+                
+                render(localData);
             } catch (error) {
-                console.error("Error cargando datos:", error);
-                document.getElementById('itemsGrid').innerHTML = `
-                    <div class="text-center p-10 bg-red-50 rounded-3xl border border-red-100">
-                        <p class="text-red-600 font-bold">No pudimos conectar con la base de datos.</p>
-                        <p class="text-red-400 text-xs">Verifica que tu Google Sheet tenga datos.</p>
-                    </div>`;
+                document.getElementById('itemsGrid').innerHTML = `<p class="text-center text-red-500">Error de conexión.</p>`;
             }
         }
 
         function render(data) {
             const grid = document.getElementById('itemsGrid');
-            if (data.length === 0) {
-                grid.innerHTML = `<p class="text-center text-slate-400 py-10">No hay elementos en esta categoría aún.</p>`;
-                return;
-            }
-
             grid.innerHTML = data.map((item, index) => `
                 <div class="bg-white rounded-[2.5rem] overflow-hidden card-shadow animate-fade border border-slate-50" style="animation-delay: ${index * 0.1}s">
                     <div class="relative h-60">
-                        <img src="${item.imagen || 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=600'}" 
-                             class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=600'">
+                        <img src="${item.imagen || 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600'}" 
+                             class="w-full h-full object-cover">
                         <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-black text-emerald-700 shadow-sm">
                             ${item.precio || 'Consultar'}
                         </div>
                     </div>
                     <div class="p-6">
                         <div class="flex items-center gap-2 mb-2">
-                            <span class="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] bg-emerald-50 px-2 py-0.5 rounded-md">${item.categoria}</span>
+                            <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-md">
+                                ${item.categoria || 'Wellness'}
+                            </span>
                         </div>
-                        <h3 class="text-2xl font-bold text-slate-800 mb-1 leading-tight">${item.nombre}</h3>
+                        <h3 class="text-2xl font-bold text-slate-800 mb-1 leading-tight">
+                            ${item.nombre || 'Sin Nombre'}
+                        </h3>
                         <p class="text-slate-500 font-medium flex items-center gap-1.5 mb-6">
-                            <i data-lucide="map-pin" class="w-4 h-4 text-emerald-500"></i> ${item.proveedor}
+                            <i data-lucide="shop" class="w-4 h-4 text-emerald-500"></i> 
+                            ${item.proveedor || 'Negocio Local'}
                         </p>
-                        <a href="${item.link}" target="_blank" 
+                        <a href="${item.link || '#'}" target="_blank" 
                            class="flex justify-between items-center w-full bg-slate-900 text-white p-5 rounded-2xl font-bold active:scale-95 transition-all shadow-xl shadow-slate-200">
-                            <span>Contactar ahora</span>
-                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                            <span>Ver más / Contactar</span>
+                            <i data-lucide="external-link" class="w-5 h-5"></i>
                         </a>
                     </div>
                 </div>
@@ -122,23 +119,9 @@
             btns.forEach(b => b.className = "cat-btn flex-none px-6 py-3 rounded-2xl bg-white text-slate-500 font-bold border border-slate-100");
             event.target.className = "cat-btn flex-none px-6 py-3 rounded-2xl bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-200";
 
-            const filtered = cat === 'todos' ? localData : localData.filter(i => i.categoria.toLowerCase() === cat.toLowerCase());
+            const filtered = cat === 'todos' ? localData : localData.filter(i => String(i.categoria).toLowerCase() === cat.toLowerCase());
             render(filtered);
         }
-
-        // PWA Hack: Manifiesto Dinámico
-        const manifest = {
-            "name": "Wellness Hub SC",
-            "short_name": "WellnessHub",
-            "start_url": ".",
-            "display": "standalone",
-            "background_color": "#f8fafc",
-            "theme_color": "#059669",
-            "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/2864/2864339.png", "sizes": "512x512", "type": "image/png" }]
-        };
-        const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(blob);
-        document.querySelector('head').insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestURL}">`);
 
         window.onload = loadCloudData;
     </script>
