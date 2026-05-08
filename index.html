@@ -15,7 +15,7 @@
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
         .card-shadow { box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08); }
         .animate-fade { animation: fadeIn 0.5s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -24,7 +24,7 @@
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen pb-32">
 
-    <header class="sticky top-0 z-50 glass px-6 py-5 flex justify-between items-center">
+    <header class="sticky top-0 z-50 glass px-6 py-5 flex justify-between items-center border-b border-slate-100">
         <div>
             <h1 class="text-2xl font-black tracking-tight text-emerald-800">Wellness Hub</h1>
             <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest italic">San Carlos, Sonora</p>
@@ -36,7 +36,7 @@
 
     <main class="p-5">
         <div class="flex gap-3 mb-8 overflow-x-auto hide-scroll py-2">
-            <button onclick="filterItems('todos')" class="cat-btn flex-none px-6 py-3 rounded-2xl bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-200">Todos</button>
+            <button onclick="filterItems('todos')" class="cat-btn flex-none px-6 py-3 rounded-2xl bg-emerald-600 text-white font-bold shadow-lg">Todos</button>
             <button onclick="filterItems('servicios')" class="cat-btn flex-none px-6 py-3 rounded-2xl bg-white text-slate-500 font-bold border border-slate-100">Servicios</button>
             <button onclick="filterItems('productos')" class="cat-btn flex-none px-6 py-3 rounded-2xl bg-white text-slate-500 font-bold border border-slate-100">Productos</button>
         </div>
@@ -44,7 +44,7 @@
         <div id="itemsGrid" class="grid grid-cols-1 gap-6">
             <div class="py-20 text-center col-span-full">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mb-4"></div>
-                <p class="text-slate-400 font-medium">Sincronizando ubicación...</p>
+                <p class="text-slate-400">Sincronizando con la nube...</p>
             </div>
         </div>
     </main>
@@ -58,7 +58,7 @@
             <i data-lucide="map"></i>
             <span class="text-[10px] font-bold mt-1">Mapa Gral.</span>
         </button>
-        <button onclick="alert('Próximamente: Tu historial de bienestar')" class="flex flex-col items-center text-slate-400">
+        <button onclick="alert('Próximamente: Tu perfil Wellness')" class="flex flex-col items-center text-slate-400">
             <i data-lucide="user"></i>
             <span class="text-[10px] font-bold mt-1">Perfil</span>
         </button>
@@ -70,25 +70,28 @@
 
         async function loadCloudData() {
             try {
-                const response = await fetch(CLOUD_URL);
+                // Forzamos actualización evitando caché del navegador
+                const response = await fetch(`${CLOUD_URL}?t=${Date.now()}`);
                 const rawData = await response.json();
                 
-                // Normalización inteligente de datos
+                // Limpieza de datos
                 localData = rawData.map(item => {
-                    let newItem = {};
-                    for (let key in item) { newItem[key.toLowerCase().trim()] = item[key]; }
-                    return newItem;
+                    let normalized = {};
+                    for (let key in item) { 
+                        normalized[key.toLowerCase().replace(/\s/g, '')] = item[key]; 
+                    }
+                    return normalized;
                 });
                 render(localData);
-            } catch (error) {
-                console.error("Error cargando base de datos:", error);
+            } catch (e) {
+                document.getElementById('itemsGrid').innerHTML = `<p class="text-center p-10 text-red-400">Error de conexión. Verifica tu internet.</p>`;
             }
         }
 
         function render(data) {
             const grid = document.getElementById('itemsGrid');
             grid.innerHTML = data.map((item, index) => `
-                <div class="bg-white rounded-[2.5rem] overflow-hidden card-shadow animate-fade border border-slate-50" style="animation-delay: ${index * 0.1}s">
+                <div class="bg-white rounded-[2.5rem] overflow-hidden card-shadow animate-fade" style="animation-delay: ${index * 0.1}s">
                     <div class="relative h-64">
                         <img src="${item.imagen || 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800'}" class="w-full h-full object-cover">
                         <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-black text-emerald-700 shadow-sm">
@@ -96,39 +99,34 @@
                         </div>
                     </div>
                     <div class="p-6">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-md">
-                                ${item.categoria || 'Wellness'}
-                            </span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-slate-800 mb-1 leading-tight">${item.nombre || 'Cargando...'}</h3>
-                        <p class="text-slate-500 font-medium flex items-center gap-1.5 mb-6 italic">
+                        <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-md">
+                            ${item.categoria || 'General'}
+                        </span>
+                        <h3 class="text-2xl font-bold text-slate-800 mt-2 mb-1">${item.nombre || 'Negocio Wellness'}</h3>
+                        <p class="text-slate-500 font-medium flex items-center gap-1.5 mb-6">
                             <i data-lucide="map-pin" class="w-4 h-4 text-emerald-500"></i> ${item.proveedor || 'San Carlos'}
                         </p>
                         
                         <div class="grid grid-cols-2 gap-3">
-                            <a href="${item.ubicacion || 'https://maps.google.com'}" target="_blank" 
-                               class="flex items-center justify-center gap-2 bg-slate-100 text-slate-700 py-4 rounded-2xl font-bold active:scale-95 transition-all">
+                            <a href="${item.ubicacion || '#'}" target="_blank" class="flex items-center justify-center gap-2 bg-slate-100 text-slate-700 py-4 rounded-2xl font-bold active:scale-95 transition-all">
                                 <i data-lucide="navigation" class="w-5 h-5"></i>
                                 <span>Ver Mapa</span>
                             </a>
-                            
-                            <a href="${item.link || '#'}" target="_blank" 
-                               class="flex items-center justify-center gap-2 bg-slate-900 text-white py-4 rounded-2xl font-bold active:scale-95 transition-all shadow-lg">
+                            <a href="${item.link || '#'}" target="_blank" class="flex items-center justify-center gap-2 bg-slate-900 text-white py-4 rounded-2xl font-bold active:scale-95 transition-all">
                                 <i data-lucide="message-circle" class="w-5 h-5"></i>
-                                <span>Contactar</span>
+                                <span>WhatsApp</span>
                             </a>
                         </div>
                     </div>
                 </div>
             `).join('');
-            lucide.createIcons(); // Vital para que se vean los iconos
+            lucide.createIcons();
         }
 
         function filterItems(cat) {
             const btns = document.querySelectorAll('.cat-btn');
             btns.forEach(b => b.className = "cat-btn flex-none px-6 py-3 rounded-2xl bg-white text-slate-500 font-bold border border-slate-100");
-            event.target.className = "cat-btn flex-none px-6 py-3 rounded-2xl bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-200";
+            event.target.className = "cat-btn flex-none px-6 py-3 rounded-2xl bg-emerald-600 text-white font-bold shadow-lg";
 
             const filtered = cat === 'todos' ? localData : localData.filter(i => String(i.categoria).toLowerCase() === cat.toLowerCase());
             render(filtered);
