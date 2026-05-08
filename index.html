@@ -1,61 +1,5 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Wellness Hub San Carlos</title>
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#059669">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
-        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
-        .hide-scroll::-webkit-scrollbar { display: none; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade { animation: fadeIn 0.4s ease-out forwards; }
-    </style>
-</head>
-<body class="bg-slate-50 text-slate-900 min-h-screen pb-28">
-
-    <header class="sticky top-0 z-50 glass px-6 py-5 flex justify-between items-center border-b border-slate-100">
-        <div>
-            <h1 class="text-2xl font-black tracking-tight text-emerald-800">Wellness Hub</h1>
-            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest italic">San Carlos, Sonora</p>
-        </div>
-        <button onclick="loadCloudData()" class="p-2 bg-emerald-50 rounded-xl text-emerald-600 active:rotate-180 transition-all duration-500">
-            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-        </button>
-    </header>
-
-    <main class="p-5">
-        <div class="flex gap-3 mb-8 overflow-x-auto hide-scroll py-2">
-            <button onclick="filterItems('todos')" class="cat-btn flex-none px-6 py-3 rounded-2xl bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-200">Todos</button>
-            <button onclick="filterItems('servicios')" class="cat-btn flex-none px-6 py-3 rounded-2xl bg-white text-slate-500 font-bold border border-slate-100">Servicios</button>
-            <button onclick="filterItems('productos')" class="cat-btn flex-none px-6 py-3 rounded-2xl bg-white text-slate-500 font-bold border border-slate-100">Productos</button>
-        </div>
-
-        <div id="itemsGrid" class="grid grid-cols-1 gap-6">
-            <div class="col-span-full py-20 text-center">
-                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mb-4"></div>
-                <p class="text-slate-400 font-medium">Sincronizando con San Carlos...</p>
-            </div>
-        </div>
-    </main>
-
-    <nav class="fixed bottom-6 left-6 right-6 h-20 glass rounded-3xl shadow-2xl flex justify-around items-center px-4 border border-white/50">
-        <button class="flex flex-col items-center text-emerald-600"><i data-lucide="sparkles"></i><span class="text-[10px] font-bold mt-1">Explorar</span></button>
-        <button class="flex flex-col items-center text-slate-400"><i data-lucide="map-pin"></i><span class="text-[10px] font-bold mt-1">Mapa</span></button>
-        <button class="flex flex-col items-center text-slate-400"><i data-lucide="user"></i><span class="text-[10px] font-bold mt-1">Perfil</span></button>
-    </nav>
-
-    <script>
+<script>
+        // CONFIGURACIÓN CLOUD
         const CLOUD_URL = "https://script.google.com/macros/s/AKfycbxw9MinZFHWrLN1tXLJyPB4JV-1xcnI2cirNW50dK7jR0VMxSy_AEPuSZ-k8dAFxUmd/exec";
         let localData = [];
 
@@ -64,27 +8,25 @@
                 const response = await fetch(CLOUD_URL);
                 const rawData = await response.json();
                 
-                // NORMALIZACIÓN: Forzamos a que las llaves sean minúsculas (Solución al error)
+                // Normalización de datos (Doc #9)
                 localData = rawData.map(item => {
                     let newItem = {};
-                    for (let key in item) {
-                        newItem[key.toLowerCase().trim()] = item[key];
-                    }
+                    for (let key in item) { newItem[key.toLowerCase().trim()] = item[key]; }
                     return newItem;
                 });
                 
                 render(localData);
             } catch (error) {
-                document.getElementById('itemsGrid').innerHTML = `<p class="text-center text-red-500">Error de conexión.</p>`;
+                console.error("Error:", error);
             }
         }
 
         function render(data) {
             const grid = document.getElementById('itemsGrid');
             grid.innerHTML = data.map((item, index) => `
-                <div class="bg-white rounded-[2.5rem] overflow-hidden card-shadow animate-fade border border-slate-50" style="animation-delay: ${index * 0.1}s">
-                    <div class="relative h-60">
-                        <img src="${item.imagen || 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600'}" 
+                <div class="bg-white rounded-[2.5rem] overflow-hidden card-shadow animate-fade border border-slate-50 mb-4">
+                    <div class="relative h-64">
+                        <img src="${item.imagen || 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800'}" 
                              class="w-full h-full object-cover">
                         <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-black text-emerald-700 shadow-sm">
                             ${item.precio || 'Consultar'}
@@ -96,34 +38,48 @@
                                 ${item.categoria || 'Wellness'}
                             </span>
                         </div>
-                        <h3 class="text-2xl font-bold text-slate-800 mb-1 leading-tight">
-                            ${item.nombre || 'Sin Nombre'}
-                        </h3>
+                        <h3 class="text-2xl font-bold text-slate-800 mb-1 leading-tight">${item.nombre}</h3>
                         <p class="text-slate-500 font-medium flex items-center gap-1.5 mb-6">
-                            <i data-lucide="shop" class="w-4 h-4 text-emerald-500"></i> 
-                            ${item.proveedor || 'Negocio Local'}
+                            <i data-lucide="map-pin" class="w-4 h-4 text-emerald-500"></i> ${item.proveedor}
                         </p>
-                        <a href="${item.link || '#'}" target="_blank" 
-                           class="flex justify-between items-center w-full bg-slate-900 text-white p-5 rounded-2xl font-bold active:scale-95 transition-all shadow-xl shadow-slate-200">
-                            <span>Ver más / Contactar</span>
-                            <i data-lucide="external-link" class="w-5 h-5"></i>
-                        </a>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <a href="${item.ubicacion || 'https://www.google.com/maps/search/San+Carlos+Sonora'}" target="_blank" 
+                               class="flex items-center justify-center gap-2 bg-slate-100 text-slate-700 p-4 rounded-2xl font-bold active:scale-95 transition-all">
+                                <i data-lucide="navigation" class="w-5 h-5"></i>
+                                <span>Mapa</span>
+                            </a>
+                            
+                            <a href="${item.link || '#'}" target="_blank" 
+                               class="flex items-center justify-center gap-2 bg-emerald-600 text-white p-4 rounded-2xl font-bold active:scale-95 transition-all shadow-lg shadow-emerald-100">
+                                <i data-lucide="message-circle" class="w-5 h-5"></i>
+                                <span>Contacto</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             `).join('');
             lucide.createIcons();
         }
 
-        function filterItems(cat) {
-            const btns = document.querySelectorAll('.cat-btn');
-            btns.forEach(b => b.className = "cat-btn flex-none px-6 py-3 rounded-2xl bg-white text-slate-500 font-bold border border-slate-100");
-            event.target.className = "cat-btn flex-none px-6 py-3 rounded-2xl bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-200";
-
-            const filtered = cat === 'todos' ? localData : localData.filter(i => String(i.categoria).toLowerCase() === cat.toLowerCase());
-            render(filtered);
+        // Funciones para los botones de abajo (Navegación)
+        function showTab(tab) {
+            if(tab === 'explorar') {
+                loadCloudData(); // Recarga la lista
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            } else if(tab === 'mapa') {
+                // Abre Google Maps de San Carlos Sonora por defecto
+                window.open('https://www.google.com/maps/search/Wellness+Spa+San+Carlos+Sonora', '_blank');
+            } else if(tab === 'perfil') {
+                alert("Próximamente: Panel de Negocios para San Carlos.");
+            }
         }
 
         window.onload = loadCloudData;
     </script>
-</body>
-</html>
+
+    <nav class="fixed bottom-6 left-6 right-6 h-20 glass rounded-3xl shadow-2xl flex justify-around items-center px-4 border border-white/50">
+        <button onclick="showTab('explorar')" class="flex flex-col items-center text-emerald-600"><i data-lucide="sparkles"></i><span class="text-[10px] font-bold mt-1">Explorar</span></button>
+        <button onclick="showTab('mapa')" class="flex flex-col items-center text-slate-400"><i data-lucide="map"></i><span class="text-[10px] font-bold mt-1">Mapa Gral.</span></button>
+        <button onclick="showTab('perfil')" class="flex flex-col items-center text-slate-400"><i data-lucide="user"></i><span class="text-[10px] font-bold mt-1">Negocios</span></button>
+    </nav>
